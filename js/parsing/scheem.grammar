@@ -1,0 +1,37 @@
+start =
+    expression
+
+validchar
+    = [0-9a-zA-Z_?!+\-=@#$%^&*/.]
+
+atom =
+    whitespace? chars:validchar+ whitespace?
+        { return chars.join(""); }
+
+whitespace =
+    [\n\t ]+
+        { return "!WS!"}
+    
+lparen = 
+    "("
+  / "(" whitespace
+  
+rparen = 
+    ")"
+  / whitespace ")"
+  
+lexpr =
+    atom
+  / list
+  / " " l:list
+      { return l}
+  / " " a:atom
+      { return a }
+      
+list = 
+   lparen exprs:lexpr* rparen
+       { return exprs }
+       
+expression =
+    atom
+  / list
