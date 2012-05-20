@@ -1,0 +1,9 @@
+;; Fast-Fib implementation
+(define (fib n)
+    (define (ff m c n-1 n-2)
+        (define next (+ n-1 n-2)) ;; Next value
+        (if (= m c) next
+            (ff m (+ 1 c) next n-1)))
+    (if (< n 2)
+        n
+        (ff n 2 1 0)))
