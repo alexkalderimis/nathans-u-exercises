@@ -2,15 +2,26 @@ start =
     expression
 
 validchar
-    = [0-9a-zA-Z_?!+\-=@#$%^&*/.]
+    = [0-9a-zA-Z_?!+\-=@#$%^&*/.<>]
+
+integer =
+    first:[1-9] rest:[0-9]*
+       { return parseInt(first + rest.join(""), 10); }
 
 atom =
-    whitespace? chars:validchar+ whitespace?
+     integer
+  /  whitespace? chars:validchar+ whitespace?
         { return chars.join(""); }
 
+comment = 
+    [\t ]* ";;" [^\n]* "\n"
+        {return "!COMM!";}
+
 whitespace =
-    [\n\t ]+
+    comment
+  / [\n\t ]+
         { return "!WS!"}
+
     
 lparen = 
     "("
@@ -23,15 +34,21 @@ rparen =
 lexpr =
     atom
   / list
+  / quote
   / " " l:list
       { return l}
   / " " a:atom
       { return a }
       
 list = 
-   lparen exprs:lexpr* rparen
+   whitespace? lparen exprs:lexpr* rparen whitespace? 
        { return exprs }
        
 expression =
     atom
+  / quote
   / list
+
+quote = 
+    "'" exp:expression
+        {return ["quote",  exp];}
