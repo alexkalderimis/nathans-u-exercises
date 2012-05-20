@@ -9,7 +9,8 @@ integer =
        { return parseInt(first + rest.join(""), 10); }
 
 atom =
-     integer
+     whitespace? i:integer whitespace?
+        {return i; }
   /  whitespace? chars:validchar+ whitespace?
         { return chars.join(""); }
 
