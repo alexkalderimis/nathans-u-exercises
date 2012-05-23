@@ -5,32 +5,51 @@ validchar
     = [0-9a-zA-Z_?!+\-=@#$%^&*/.<>]
 
 integer =
-    first:[1-9] rest:[0-9]*
+    "0"
+        { return 0; }
+  / first:[1-9] rest:[0-9]*
        { return parseInt(first + rest.join(""), 10); }
 
+float =
+    start:[0-9]+ "." rest:[0-9]+
+       { return parseFloat(start.join("") + "." + rest.join("")); }
+
 atom =
-     whitespace? i:integer whitespace?
+     whitespace* s:string whitespace*
+        {return s;}
+  /  whitespace* i:integer whitespace*
         {return i; }
-  /  whitespace? chars:validchar+ whitespace?
+  /  whitespace* chars:validchar+ whitespace*
         { return chars.join(""); }
 
 comment = 
     [\t ]* ";;" [^\n]* "\n"
         {return "!COMM!";}
+  / [\t ]* ";" [^\n]* "\n"
+        {return '!COMM!';}
+
+dblquotcontent = 
+      [^"]
+
+singlequotcontent = 
+      [^']
+
+string = 
+     '"' chars:dblquotcontent* '"'
+        {return ['quote', chars.join("")];}
 
 whitespace =
     comment
   / [\n\t ]+
         { return "!WS!"}
-
     
 lparen = 
     "("
-  / "(" whitespace
+  / "(" whitespace*
   
 rparen = 
     ")"
-  / whitespace ")"
+  / whitespace* ")"
   
 lexpr =
     atom
@@ -42,7 +61,9 @@ lexpr =
       { return a }
       
 list = 
-   whitespace? lparen exprs:lexpr* rparen whitespace? 
+     whitespace* lparen whitespace* rparen whitespace* 
+       { return []; }
+   / whitespace* lparen exprs:lexpr* rparen whitespace* 
        { return exprs }
        
 expression =
