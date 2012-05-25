@@ -2,7 +2,7 @@ start =
     expression
 
 validchar
-    = [0-9a-zA-Z_?!+\-=@#$%^&*/.<>]
+    = [0-9a-zA-Z_?!+\-=@#$%^&*~/.<>]
 
 integer =
     "0"
@@ -19,6 +19,8 @@ atom =
         {return s;}
   /  whitespace* i:integer whitespace*
         {return i; }
+  /  whitespace* f:float whitespace*
+        { return f;}
   /  whitespace* chars:validchar+ whitespace*
         { return chars.join(""); }
 
@@ -52,9 +54,9 @@ rparen =
   / whitespace* ")"
   
 lexpr =
-    atom
+    quoted
+  / atom
   / list
-  / quote
   / " " l:list
       { return l}
   / " " a:atom
@@ -67,10 +69,22 @@ list =
        { return exprs }
        
 expression =
-    atom
-  / quote
+    quoted
+  / atom
   / list
 
-quote = 
+quoted = 
     "'" exp:expression
         {return ["quote",  exp];}
+    / r:regex
+        {return r;}
+
+regexchar = 
+    [^/] / "\\/"
+    
+regexflag =
+    [gim]
+
+regex = 
+    whitespace* "/" chars:regexchar* "/" flags:regexflag* whitespace*
+        { return ["regex", ["quote", chars.join("")], ["quote", flags]]; }
