@@ -1,0 +1,70 @@
+(define (car xs) (get-item 0 xs))
+(define (cdr xs) (get-from 1 xs))
+
+(define (foldl f init xs)
+  (match xs (
+    ( (list)            init                                           )
+    ( (cons head tail) (let ((next (f init head))) (foldl f next tail)))
+    ( else             (die (+ "Expected a list - got:" (inspect xs))))
+   ))
+)
+
+(define (even? n) (= 0 (% n 2)))
+
+(define (not x) (= #f x))
+
+(define odd? (. not even?))
+
+(define (and a b) (if (not a) #f (if (not b) #f #t)))
+
+(define-syntax (or a b) (list 'if a '#t (list 'if b '#t '#f))) 
+
+(define (push xs x) (conc xs (list x)))
+
+(define (flip f) (lambda (a b) (f b a)))
+
+(define (reverse xs)
+  (foldl (flip cons) '() xs))
+
+(define (map f xs)
+  (foldl (lambda (m a) (push m (f a) )) '() xs))
+
+(define (filter f xs)
+  (foldl (lambda (m x) (if (f x) (push m x) m)) '() xs))
+
+(define (flatten xs)
+  (let ((f (lambda (m elem)
+       (let ((ff (match elem (((cons vals ...) flatten) (else list)))))
+            (conc m (ff elem))))))
+    (foldl f '() xs)))
+
+;; For pattern matching.
+(define (=~ pattern string) (call pattern 'test (list string)))
+
+(define (while test do) (if (test) (begin (do) (while test do)) nil))
+
+(define-syntax (++ x) (list 'set! x (list '+ x 1)))
+(define-syntax (-- x) (list 'set! x (list '- x 1)))
+
+(define (repeat n f) (let ((counter 0)) (let (
+  (test (lambda () (> n counter)))
+  (do   (lambda () (begin (f) (++ counter))))
+  ) (while test do))))  
+
+(define (range n m) (let ((acc (list)) (c n)) (let (
+  (test (lambda () (> m c)))
+  (do   (lambda () (begin (++ c) (set! acc (push acc c)))))
+  ) (begin (while test do) acc))))
+
+(define-syntax (apply f args ...) (cons f args))
+
+(define (all truths) (foldl and #t truths))
+
+(define (some truths) (foldl or #f truths))
+
+(define (join xs sep) (call xs 'join (list sep)))
+
+(define (split str by) (call str 'split (list by))) 
+
+(define (slice start end x) (call x 'slice (list start end)))
+
